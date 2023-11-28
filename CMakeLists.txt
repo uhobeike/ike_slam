@@ -10,11 +10,11 @@ find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
 ament_auto_add_library(${PROJECT_NAME} SHARED
-  src/mcl/likelihoodField.cpp
-  src/mcl/mcl.cpp
-  src/mcl/motionModel.cpp
-  src/mcl/observationModel.cpp
-  src/mcl/resampling.cpp
+  src/pf/likelihoodField.cpp
+  src/pf/mcl.cpp
+  src/pf/motionModel.cpp
+  src/pf/observationModel.cpp
+  src/pf/resampling.cpp
   src/ike_slam.cpp
 )
 
