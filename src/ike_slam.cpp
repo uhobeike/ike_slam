@@ -50,33 +50,47 @@ IkeSlam::~IkeSlam() { RCLCPP_INFO(this->get_logger(), "Done IkeSlam."); }
 void IkeSlam::getParam() {
   RCLCPP_INFO(get_logger(), "Run getParam.");
 
-  this->param_listener_ = std::make_shared<ike_slam::ParamListener>(
-      this->get_node_parameters_interface());
-  this->params_ = param_listener_->get_params();
+  this->declare_parameter("loop_mcl_hz", 10.0);
+  loop_mcl_ms_ =
+      1 / this->get_parameter("loop_mcl_hz").get_value<double>() * 1000;
 
-  loop_mcl_ms_ = 1 / this->params_.loop_mcl_hz * 1000;
+  this->declare_parameter("transform_tolerance", 0.2);
+  transform_tolerance_ =
+      this->get_parameter("transform_tolerance").get_value<double>();
 
-  transform_tolerance_ = this->params_.transform_tolerance;
+  this->declare_parameter("particle_size", 500);
+  particle_size_ = this->get_parameter("particle_size").get_value<int>();
 
-  particle_size_ = get_parameter("particle_size").get_value<int>();
+  this->declare_parameter("initial_pose_x", 0.0);
+  this->declare_parameter("initial_pose_y", 0.0);
+  this->declare_parameter("initial_pose_a", 0.0);
+  initial_pose_x_ = this->get_parameter("initial_pose_x").get_value<double>();
+  initial_pose_y_ = this->get_parameter("initial_pose_y").get_value<double>();
+  initial_pose_a_ = this->get_parameter("initial_pose_a").get_value<double>();
 
-  initial_pose_x_ = this->params_.initial_pose_x;
-  initial_pose_y_ = this->params_.initial_pose_y;
-  initial_pose_a_ = this->params_.initial_pose_a;
+  this->declare_parameter("map_frame", "map");
+  this->declare_parameter("odom_frame", "odom");
+  this->declare_parameter("robot_frame", "base_footprint");
+  map_frame_ = this->get_parameter("map_frame").get_value<std::string>();
+  odom_frame_ = this->get_parameter("odom_frame").get_value<std::string>();
+  robot_frame_ = this->get_parameter("robot_frame").get_value<std::string>();
 
-  map_frame_ = this->params_.map_frame;
-  odom_frame_ = this->params_.odom_frame;
-  robot_frame_ = this->params_.robot_frame;
+  this->declare_parameter("alpha_trans_trans", 1.0);
+  this->declare_parameter("alpha_trans_rotate", 0.2);
+  this->declare_parameter("alpha_rotate_trans", 0.2);
+  this->declare_parameter("alpha_rotate_rotate", 0.02);
+  alpha1_ = this->get_parameter("alpha_trans_trans").get_value<double>();
+  alpha2_ = this->get_parameter("alpha_trans_rotate").get_value<double>();
+  alpha3_ = this->get_parameter("alpha_rotate_trans").get_value<double>();
+  alpha4_ = this->get_parameter("alpha_rotate_rotate").get_value<double>();
 
-  alpha1_ = this->params_.alpha_trans_trans;
-  alpha2_ = this->params_.alpha_trans_rotate;
-  alpha3_ = this->params_.alpha_rotate_trans;
-  alpha4_ = this->params_.alpha_rotate_rotate;
+  this->declare_parameter("likelihood_dist", 10.0);
+  likelihood_dist_ = this->get_parameter("likelihood_dist").get_value<double>();
 
-  likelihood_dist_ = this->params_.likelihood_dist;
-
+  this->declare_parameter("publish_particles_scan_match_point", false);
   publish_particles_scan_match_point_ =
-      this->params_.publish_particles_scan_match_point;
+      this->get_parameter("publish_particles_scan_match_point")
+          .get_value<bool>();
 
   RCLCPP_INFO(get_logger(), "Done getParam.");
 }
@@ -263,7 +277,7 @@ void IkeSlam::setParticles(nav2_msgs::msg::ParticleCloud &particles) {
 
   std_msgs::msg::Header header;
   header.frame_id = "map";
-  header.stamp.nanosec = ros_clock_.now().nanoseconds();
+  header.stamp = ros_clock_.now();
   particles.set__header(header);
 
   particles.particles.resize(particle_size_);
@@ -287,7 +301,7 @@ geometry_msgs::msg::PoseStamped IkeSlam::getMclPose(const Particle particle) {
 
   std_msgs::msg::Header header;
   header.frame_id = "map";
-  header.stamp.nanosec = ros_clock_.now().nanoseconds();
+  header.stamp = ros_clock_.now();
 
   geometry_msgs::msg::Pose pose;
   pose.position.x = particle.pose.position.x;
@@ -311,7 +325,7 @@ visualization_msgs::msg::MarkerArray IkeSlam::createSphereMarkerArray(
   std::string name = "";
   std_msgs::msg::Header header;
   header.frame_id = map_frame_;
-  header.stamp.nanosec = ros_clock_.now().nanoseconds();
+  header.stamp = ros_clock_.now();
 
   auto marker_array = visualization_msgs::msg::MarkerArray();
   for (auto hit_xy : particles_scan_match_point) {
