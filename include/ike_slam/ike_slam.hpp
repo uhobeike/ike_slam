@@ -5,7 +5,6 @@
 #define IKE_SLAM__IKE_SLAM_HPP_
 
 #include "ike_slam/pf/mcl.hpp"
-#include "ike_slam_parameter/ike_slam_parameter.hpp"
 #include "tf2_ros/buffer.h"
 #include "tf2_ros/transform_broadcaster.h"
 #include "tf2_ros/transform_listener.h"
@@ -117,10 +116,6 @@ private:
   rclcpp::TimerBase::SharedPtr mcl_loop_timer_; // MClのループ用のタイマー
 
   rclcpp::Clock ros_clock_; // 時間を取得する用
-
-  // パラメータの取得用
-  std::shared_ptr<ike_slam::ParamListener> param_listener_;
-  ike_slam::Params params_;
 
   std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
