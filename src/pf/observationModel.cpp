@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0
 
 #include "ike_slam/pf/observationModel.hpp"
+#include "ike_slam/map/sparseOccupancyGridMap.hpp"
 
 namespace mcl {
 ObservationModel::ObservationModel(
@@ -116,19 +117,14 @@ double ObservationModel::getProbFromLikelihoodMap(double x, double y) {
   // std::cerr << "Run ObservationModel::getProbFromLikelihoodMap."
   //           << "\n";
 
-  int grid_x = x / likelihood_field_->resolution_;
-  int grid_y = y / likelihood_field_->resolution_;
+  int cell_x = x / likelihood_field_->resolution_;
+  int cell_y = y / likelihood_field_->resolution_;
 
   // std::cerr << "Done ObservationModel::getProbFromLikelihoodMap."
   //           << "\n";
 
-  try {
-    likelihood_field_->data_.at(grid_y * likelihood_field_->width_ + grid_x);
-  } catch (const std::out_of_range &e) {
-    return 1.0e-10;
-  }
-
-  return likelihood_field_->data_[grid_y * likelihood_field_->width_ + grid_x];
+  return likelihood_field_->smap_.getValueFromCell<double>(cell_x, cell_y,
+                                                           true);
 }
 
 } // namespace mcl

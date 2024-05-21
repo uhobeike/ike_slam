@@ -78,7 +78,8 @@ public:
   const_iterator end() const { return map_data_.end(); }
 
   void addCell(int x, int y, double value);
-  int getValueFromCell(int x, int y) const;
+  template <typename T>
+  T getValueFromCell(int x, int y, bool use_likelihoodField = false) const;
   void expandMap(int new_width, int new_height);
   void fromOccupancyGrid(const int width, const int height,
                          const std::vector<double> map_data);
@@ -90,6 +91,21 @@ private:
   int width_;
   int height_;
 };
+
+template <typename T>
+T SparseOccupancyGridMap::getValueFromCell(int x, int y,
+                                           bool use_likelihoodField) const {
+  Index idx{x, y};
+  auto it = map_data_.find(idx);
+  if (it != map_data_.end()) {
+    return static_cast<T>(it->second.value);
+  }
+
+  if (use_likelihoodField)
+    return static_cast<T>(1.0e-10);
+  else
+    return static_cast<T>(-1);
+}
 
 } // namespace mcl
 

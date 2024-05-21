@@ -15,22 +15,9 @@ void SparseOccupancyGridMap::addCell(int x, int y, double value) {
   updateMapSize(x, y);
 }
 
-int SparseOccupancyGridMap::getValueFromCell(int x, int y) const {
-  Index idx{x, y};
-  auto it = map_data_.find(idx);
-  if (it != map_data_.end()) {
-    return it->second.value;
-  }
-  return -1;
-}
-
 void SparseOccupancyGridMap::expandMap(int new_width, int new_height) {
-  if (new_width > width_) {
-    width_ = new_width;
-  }
-  if (new_height > height_) {
-    height_ = new_height;
-  }
+  width_ = std::max(width_, new_width);
+  height_ = std::max(height_, new_height);
 }
 
 void SparseOccupancyGridMap::fromOccupancyGrid(
@@ -63,11 +50,7 @@ nav_msgs::msg::OccupancyGrid SparseOccupancyGridMap::toOccupancyGrid() const {
 }
 
 void SparseOccupancyGridMap::updateMapSize(int x, int y) {
-  if (x >= width_) {
-    width_ = x + 1;
-  }
-  if (y >= height_) {
-    height_ = y + 1;
-  }
+  width_ = std::max(width_, x + 1);
+  height_ = std::max(height_, y + 1);
 }
 } // namespace mcl
