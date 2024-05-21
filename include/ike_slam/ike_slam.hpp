@@ -155,4 +155,4 @@ private:
 };
 } // namespace ike_slam
 
-#endif // IKE_SLAM__MCL2_NODE_HPP_
+#endif // IKE_SLAM__IKE_SLAM_HPP_
