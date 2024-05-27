@@ -320,7 +320,7 @@ geometry_msgs::msg::PoseStamped IkeSlam::getMclPose(const Particle particle) {
 }
 
 visualization_msgs::msg::MarkerArray IkeSlam::createSphereMarkerArray(
-    const std::vector<std::vector<double>> particles_scan_match_point) {
+    const std::vector<std::pair<double, double>> particles_scan_match_point) {
   int id = 0;
   std::string name = "";
   std_msgs::msg::Header header;
@@ -348,8 +348,8 @@ visualization_msgs::msg::MarkerArray IkeSlam::createSphereMarkerArray(
     marker.color.g = 0.;
     marker.color.b = 0.;
 
-    marker.pose.position.x = hit_xy[0];
-    marker.pose.position.y = hit_xy[1];
+    marker.pose.position.x = hit_xy.first;
+    marker.pose.position.y = hit_xy.second;
     marker.pose.position.z = 0.2;
 
     marker_array.markers.push_back(marker);
@@ -416,7 +416,23 @@ void IkeSlam::loopMcl() {
               mcl_->particles_, tf2::getYaw(current_pose_.pose.orientation),
               delta_x_, delta_y_, delta_yaw_);
 
+          std::chrono::system_clock::time_point start, end;
+          std::time_t time_stamp;
+
+          start = std::chrono::system_clock::now();
           mcl_->observation_model_->update(mcl_->particles_, scan_.ranges);
+
+          end = std::chrono::system_clock::now();
+
+          auto time = end - start;
+
+          time_stamp = std::chrono::system_clock::to_time_t(start);
+          std::cout << std::ctime(&time_stamp);
+
+          auto msec =
+              std::chrono::duration_cast<std::chrono::milliseconds>(time)
+                  .count();
+          std::cerr << msec << " msec" << std::endl;
 
           mcl_->resampling_->resampling(mcl_->particles_);
 

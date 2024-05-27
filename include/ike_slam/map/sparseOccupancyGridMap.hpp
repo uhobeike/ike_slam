@@ -1,7 +1,11 @@
 #ifndef IKE_SLAM__SPARSEOCCUPANCYGRIDMAP_HPP_
 #define IKE_SLAM__SPARSEOCCUPANCYGRIDMAP_HPP_
 
+#define _ENABLE_ATOMIC_ALIGNMENT_FIX
+
+#include <execution>
 #include <iterator>
+#include <mutex>
 #include <nav_msgs/msg/occupancy_grid.hpp>
 #include <unordered_map>
 #include <vector>
@@ -67,7 +71,7 @@ public:
     }
 
   private:
-    typename std::unordered_map<Index, Cell, Index>::iterator it_;
+    typename std::unordered_map<Index, Cell, IndexHash>::iterator it_;
   };
 
   Iterator begin() { return Iterator(map_data_.begin()); }
@@ -80,9 +84,13 @@ public:
   void addCell(int x, int y, double value);
   template <typename T>
   T getValueFromCell(int x, int y, bool use_likelihoodField = false) const;
+  template <typename T>
+  std::vector<T>
+  getValuesFromCells(const std::vector<std::pair<double, double>> &points,
+                     bool use_likelihoodField) const;
   void expandMap(int new_width, int new_height);
   void fromOccupancyGrid(const int width, const int height,
-                         const std::vector<double> map_data);
+                         const std::vector<double> &map_data);
   nav_msgs::msg::OccupancyGrid toOccupancyGrid() const;
 
 private:
@@ -90,21 +98,42 @@ private:
   std::unordered_map<Index, Cell, IndexHash> map_data_;
   int width_;
   int height_;
-};
 
+  mutable std::mutex map_mutex_;
+};
 template <typename T>
-T SparseOccupancyGridMap::getValueFromCell(int x, int y,
-                                           bool use_likelihoodField) const {
+inline T
+SparseOccupancyGridMap::getValueFromCell(int x, int y,
+                                         bool use_likelihoodField) const {
+  static const T likelihood_default = static_cast<T>(1.0e-10);
+  static const T normal_default = static_cast<T>(-1);
+
   Index idx{x, y};
+
+  // std::lock_guard<std::mutex> lock(map_mutex_);
   auto it = map_data_.find(idx);
+
   if (it != map_data_.end()) {
     return static_cast<T>(it->second.value);
   }
 
-  if (use_likelihoodField)
-    return static_cast<T>(1.0e-10);
-  else
-    return static_cast<T>(-1);
+  return use_likelihoodField ? likelihood_default : normal_default;
+}
+
+template <typename T>
+inline std::vector<T> SparseOccupancyGridMap::getValuesFromCells(
+    const std::vector<std::pair<double, double>> &points,
+    bool use_likelihoodField) const {
+  std::vector<T> values(points.size());
+
+  std::transform(
+      points.begin(), points.end(), values.begin(),
+      [this, use_likelihoodField](const std::pair<double, double> &point) {
+        return this->template getValueFromCell<T>(point.first, point.second,
+                                                  use_likelihoodField);
+      });
+
+  return values;
 }
 
 } // namespace mcl

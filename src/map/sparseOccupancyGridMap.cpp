@@ -21,7 +21,7 @@ void SparseOccupancyGridMap::expandMap(int new_width, int new_height) {
 }
 
 void SparseOccupancyGridMap::fromOccupancyGrid(
-    const int width, const int height, const std::vector<double> map_data) {
+    const int width, const int height, const std::vector<double> &map_data) {
   map_data_.clear();
   width_ = width;
   height_ = height;

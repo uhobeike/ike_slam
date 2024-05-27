@@ -60,7 +60,7 @@ protected:
   geometry_msgs::msg::PoseStamped getMclPose(const Particle particle);
 
   visualization_msgs::msg::MarkerArray createSphereMarkerArray(
-      const std::vector<std::vector<double>> particles_scan_match_point);
+      const std::vector<std::pair<double, double>> particles_scan_match_point);
   void
   transformMapToOdom(); // 推定した姿勢からマップ座標系オドメトリー座標系間の変換を行う
   void getCurrentRobotPose(

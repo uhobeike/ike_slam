@@ -77,35 +77,24 @@ double ObservationModel::calculateParticleWeight(const Particle p) {
   double particle_weight = 0.;
   double scan_angle_increment = scan_.angle_min;
 
+  std::vector<std::pair<double, double>> hits_xy;
+  for (auto scan_range : scan_.ranges) {
+    scan_angle_increment += scan_.angle_increment;
+    if (std::isinf(scan_range) || std::isnan(scan_range))
+      continue;
+
+    hits_xy.push_back(std::make_pair(
+        p.pose.position.x +
+            scan_range * cos(p.pose.euler.yaw + scan_angle_increment),
+        p.pose.position.y +
+            scan_range * sin(p.pose.euler.yaw + scan_angle_increment)));
+  }
+
+  auto probs = getProbsFromLikelihoodMap(hits_xy);
+  particle_weight += std::reduce(probs.begin(), probs.end());
+
   if (publish_particles_scan_match_point_) {
-    std::vector<double> hit_xy;
-    for (auto scan_range : scan_.ranges) {
-      scan_angle_increment += scan_.angle_increment;
-      if (std::isinf(scan_range) || std::isnan(scan_range))
-        continue;
-
-      hit_xy.clear();
-      hit_xy.push_back(p.pose.position.x +
-                       scan_range *
-                           cos(p.pose.euler.yaw + scan_angle_increment));
-      hit_xy.push_back(p.pose.position.y +
-                       scan_range *
-                           sin(p.pose.euler.yaw + scan_angle_increment));
-      particles_scan_match_point_.push_back(hit_xy);
-      particle_weight += getProbFromLikelihoodMap(hit_xy.at(0), hit_xy.at(1));
-    }
-  } else {
-    for (auto scan_range : scan_.ranges) {
-      scan_angle_increment += scan_.angle_increment;
-      if (std::isinf(scan_range) || std::isnan(scan_range))
-        continue;
-
-      auto hit_x = p.pose.position.x +
-                   scan_range * cos(p.pose.euler.yaw + scan_angle_increment);
-      auto hit_y = p.pose.position.y +
-                   scan_range * sin(p.pose.euler.yaw + scan_angle_increment);
-      particle_weight += getProbFromLikelihoodMap(hit_x, hit_y);
-    }
+    particles_scan_match_point_ = std::move(hits_xy);
   }
 
   // std::cerr << "Done ObservationModel::calculateParticleWeight."
@@ -125,6 +114,24 @@ double ObservationModel::getProbFromLikelihoodMap(double x, double y) {
 
   return likelihood_field_->smap_.getValueFromCell<double>(cell_x, cell_y,
                                                            true);
+}
+
+std::vector<double> ObservationModel::getProbsFromLikelihoodMap(
+    std::vector<std::pair<double, double>> &points) {
+  // std::cerr << "Run ObservationModel::getProbFromLikelihoodMap."
+  //           << "\n";
+
+  auto cells = std::move(points);
+
+  for (auto &cell : cells) {
+    cell.first /= likelihood_field_->resolution_;
+    cell.second /= likelihood_field_->resolution_;
+  }
+
+  // std::cerr << "Done ObservationModel::getProbFromLikelihoodMap."
+  //           << "\n";
+
+  return likelihood_field_->smap_.getValuesFromCells<double>(cells, true);
 }
 
 } // namespace mcl
