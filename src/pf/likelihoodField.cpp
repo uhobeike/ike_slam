@@ -79,17 +79,7 @@ double LikelihoodField::normalizePdf(double max_pdf, double pdf) {
 }
 
 void LikelihoodField::getLikelihoodField(std::vector<int8_t> &data) {
-  // to do fix
-
-  auto copy_data = smap_.toOccupancyGrid().data;
-
-  for (auto &data : copy_data) {
-    data = data * 100;
-  }
-
-  std::vector<int8_t> int_data(copy_data.begin(), copy_data.end());
-
-  data = int_data;
+  data = smap_.toOccupancyGrid().data;
 }
 
 } // namespace mcl

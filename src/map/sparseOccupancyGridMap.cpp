@@ -44,7 +44,7 @@ nav_msgs::msg::OccupancyGrid SparseOccupancyGridMap::toOccupancyGrid() const {
 
   for (const auto &cell : map_data_) {
     int index = cell.first.y * width_ + cell.first.x;
-    grid.data[index] = cell.second.value;
+    grid.data[index] = cell.second.value * 100;
   }
   return grid;
 }
