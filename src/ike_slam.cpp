@@ -253,6 +253,10 @@ void IkeSlam::transformMapToOdom() {
   RCLCPP_INFO(get_logger(), "Done transformMapToOdom.");
 }
 
+void IkeSlam::setScan(const sensor_msgs::msg::LaserScan &scan) {
+  mcl_->scan_ = scan;
+}
+
 void IkeSlam::getCurrentRobotPose(
     geometry_msgs::msg::PoseStamped &current_pose) {
   while (rclcpp::ok() && not tf_buffer_->canTransform(odom_frame_, robot_frame_,
@@ -366,8 +370,7 @@ void IkeSlam::initMcl() {
       initial_pose_x_, initial_pose_y_, initial_pose_a_, alpha1_, alpha2_,
       alpha3_, alpha4_, particle_size_, likelihood_dist_, map_.info.width,
       map_.info.height, map_.info.resolution, map_.info.origin.position.x,
-      map_.info.origin.position.y, map_.data, scan_.angle_min, scan_.angle_max,
-      scan_.angle_increment, scan_.range_min, scan_.range_max,
+      map_.info.origin.position.y, map_.data,
       publish_particles_scan_match_point_);
 
   mcl_->observation_model_->likelihood_field_->getLikelihoodField(map_.data);
@@ -403,6 +406,7 @@ void IkeSlam::loopMcl() {
         if (rclcpp::ok() && scan_receive_ && map_receive_ && init_tf_ &&
             init_mcl_) {
           RCLCPP_INFO(get_logger(), "Run IkeSlam::loopMcl");
+          setScan(scan_);
           getCurrentRobotPose(current_pose_);
 
           mcl_->motion_model_->getDelta(
@@ -416,7 +420,7 @@ void IkeSlam::loopMcl() {
               mcl_->particles_, tf2::getYaw(current_pose_.pose.orientation),
               delta_x_, delta_y_, delta_yaw_);
 
-          mcl_->observation_model_->update(mcl_->particles_, scan_.ranges);
+          mcl_->observation_model_->update(mcl_->particles_, mcl_->scan_);
 
           mcl_->resampling_->resampling(mcl_->particles_);
 

@@ -9,6 +9,7 @@
 #include "ike_slam/pf/observationModel.hpp"
 #include "ike_slam/pf/particle.hpp"
 #include "ike_slam/pf/resampling.hpp"
+#include "ike_slam/pf/scan.hpp"
 
 #include <memory>
 #include <vector>
@@ -21,9 +22,7 @@ public:
       double alpha_rotate_trans, double alpha_rotate_rotate, int particle_size,
       double likelihood_dist, uint32_t map_width, uint32_t map_height,
       double map_resolution, double map_origin_x, double map_origin_y,
-      std::vector<int8_t> map_data, float scan_angle_min, float scan_angle_max,
-      float scan_angle_increment, float scan_range_min, float scan_range_max,
-      bool publish_particles_scan_match_point);
+      std::vector<int8_t> map_data, bool publish_particles_scan_match_point);
   ~Mcl();
 
   void release_pointers();
@@ -45,6 +44,7 @@ public:
   } // 各パーティクルのスキャンと尤度場のマッチポイントを渡す
 
   std::vector<Particle> particles_;
+  Scan scan_;
 };
 } // namespace mcl
 

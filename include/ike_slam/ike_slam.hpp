@@ -63,6 +63,7 @@ protected:
       const std::vector<std::pair<double, double>> particles_scan_match_point);
   void
   transformMapToOdom(); // 推定した姿勢からマップ座標系オドメトリー座標系間の変換を行う
+  void setScan(const sensor_msgs::msg::LaserScan &scan);
   void getCurrentRobotPose(
       geometry_msgs::msg::PoseStamped
           &current_pose); // オドメトリー座標系でのロボット姿勢を取得する
