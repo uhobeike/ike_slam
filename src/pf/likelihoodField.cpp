@@ -24,18 +24,20 @@ LikelihoodField::LikelihoodField(double likelihood_dist, uint32_t width,
 LikelihoodField::~LikelihoodField(){};
 
 void LikelihoodField::createLikelihoodField() {
+  smap_.fromOccupancyGrid(width_, height_, data_);
+
   for (uint32_t y = 0; y < height_; y++)
     for (uint32_t x = 0; x < width_; x++)
-      if (data_[width_ * (height_ - y - 1) + x] == 100) {
+      if (smap_.getValueFromCell<double>(x, y, true) == 100) {
         calculateLikelihood(x, y);
       }
 
-  for (auto &data : data_) {
-    data /= 100;
-    if (data < 1.0e-10)
-      data = 1.0e-10;
-    if (data == 0)
-      data = 1.0e-10;
+  for (auto &cell : smap_) {
+    cell.value /= 100;
+    if (cell.value < 1.0e-10)
+      cell.value = 1.0e-10;
+    if (cell.value == 0)
+      cell.value = 1.0e-10;
   }
 }
 
@@ -49,19 +51,14 @@ void LikelihoodField::calculateLikelihood(uint32_t map_x, uint32_t map_y) {
   for (auto y = sub_map_y_start - likelihood_dist_; y < sub_map_y_end; y++) {
     for (auto x = sub_map_x_start - likelihood_dist_; x < sub_map_x_end; x++) {
       if (hypot(x - map_x, y - map_y) < likelihood_dist_) {
-        try {
-          data_.at(width_ * (height_ - y - 1) + x);
-        } catch (const std::out_of_range &e) {
-          continue;
-        }
-
         if (normalizePdf(
                 calculateProb(0, likelihood_dist_),
                 calculateProb(hypot(x - map_x, y - map_y), likelihood_dist_)) >
-            data_.at(width_ * (height_ - y - 1) + x)) {
-          data_.at(width_ * (height_ - y - 1) + x) = normalizePdf(
-              calculateProb(0, likelihood_dist_),
-              calculateProb(hypot(x - map_x, y - map_y), likelihood_dist_));
+            smap_.getValueFromCell<double>(x, y, true)) {
+          smap_.addCell(x, y,
+                        normalizePdf(calculateProb(0, likelihood_dist_),
+                                     calculateProb(hypot(x - map_x, y - map_y),
+                                                   likelihood_dist_)));
         }
       }
     }
@@ -82,17 +79,7 @@ double LikelihoodField::normalizePdf(double max_pdf, double pdf) {
 }
 
 void LikelihoodField::getLikelihoodField(std::vector<int8_t> &data) {
-  // to do fix
-
-  auto copy_data = data_;
-
-  for (auto &data : copy_data) {
-    data = data * 100;
-  }
-
-  std::vector<int8_t> int_data(copy_data.begin(), copy_data.end());
-
-  data = int_data;
+  data = smap_.toOccupancyGrid().data;
 }
 
 } // namespace mcl

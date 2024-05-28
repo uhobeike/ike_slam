@@ -4,6 +4,8 @@
 #ifndef IKE_SLAM__LIKELIHOODFIELD_HPP_
 #define IKE_SLAM__LIKELIHOODFIELD_HPP_
 
+#include "ike_slam/map/sparseOccupancyGridMap.hpp"
+
 #include <iostream>
 #include <vector>
 
@@ -33,6 +35,7 @@ public:
   double origin_x_;          // 受け取ったマップの原点x
   double origin_y_;          // 受け取ったマップの原点y
   std::vector<double> data_; // 受け取ったマップの各画素の情報
+  SparseOccupancyGridMap smap_;
 };
 } // namespace mcl
 

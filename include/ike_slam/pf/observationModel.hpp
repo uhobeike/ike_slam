@@ -32,6 +32,8 @@ public:
   calculateParticleWeight(const Particle p); // パーティクルの重みを計算する
   double getProbFromLikelihoodMap(double x,
                                   double y); // 尤度場から確率を取得する
+  std::vector<double>
+  getProbsFromLikelihoodMap(std::vector<std::pair<double, double>> &points);
 
   inline double getRadian(double degree) {
     return degree * M_PI / 180;
@@ -41,7 +43,7 @@ public:
   Scan scan_;
 
   float marginal_likelihood_;
-  std::vector<std::vector<double>> particles_scan_match_point_;
+  std::vector<std::pair<double, double>> particles_scan_match_point_;
   bool publish_particles_scan_match_point_;
 };
 } // namespace mcl
