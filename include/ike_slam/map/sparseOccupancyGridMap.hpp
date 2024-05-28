@@ -23,7 +23,13 @@ struct Index {
 
 struct IndexHash {
   std::size_t operator()(const Index &idx) const {
-    return std::hash<int>{}(idx.x) ^ (std::hash<int>{}(idx.y) << 1);
+    std::size_t seed = 0;
+    std::hash<int> hasher;
+
+    seed ^= hasher(idx.x) + 0x9e3779b9 + (seed << 13) + (seed >> 7);
+    seed ^= hasher(idx.y) + 0x85ebca6b + (seed << 15) + (seed >> 5);
+
+    return seed;
   }
 };
 
@@ -98,19 +104,15 @@ private:
   std::unordered_map<Index, Cell, IndexHash> map_data_;
   int width_;
   int height_;
-
-  mutable std::mutex map_mutex_;
 };
 template <typename T>
 inline T
 SparseOccupancyGridMap::getValueFromCell(int x, int y,
                                          bool use_likelihoodField) const {
-  static const T likelihood_default = static_cast<T>(1.0e-10);
-  static const T normal_default = static_cast<T>(-1);
+  static const double likelihood_default = static_cast<double>(1.0e-10);
+  static const int8_t normal_default = static_cast<int8_t>(-1);
 
   Index idx{x, y};
-
-  // std::lock_guard<std::mutex> lock(map_mutex_);
   auto it = map_data_.find(idx);
 
   if (it != map_data_.end()) {

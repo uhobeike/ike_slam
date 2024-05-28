@@ -78,6 +78,8 @@ double ObservationModel::calculateParticleWeight(const Particle p) {
   double scan_angle_increment = scan_.angle_min;
 
   std::vector<std::pair<double, double>> hits_xy;
+  hits_xy.reserve(scan_.ranges.size());
+
   for (auto scan_range : scan_.ranges) {
     scan_angle_increment += scan_.angle_increment;
     if (std::isinf(scan_range) || std::isnan(scan_range))
@@ -90,12 +92,12 @@ double ObservationModel::calculateParticleWeight(const Particle p) {
             scan_range * sin(p.pose.euler.yaw + scan_angle_increment)));
   }
 
+  if (publish_particles_scan_match_point_) {
+    particles_scan_match_point_ = hits_xy;
+  }
+
   auto probs = getProbsFromLikelihoodMap(hits_xy);
   particle_weight += std::reduce(probs.begin(), probs.end());
-
-  if (publish_particles_scan_match_point_) {
-    particles_scan_match_point_ = std::move(hits_xy);
-  }
 
   // std::cerr << "Done ObservationModel::calculateParticleWeight."
   //           << "\n";
@@ -118,7 +120,7 @@ double ObservationModel::getProbFromLikelihoodMap(double x, double y) {
 
 std::vector<double> ObservationModel::getProbsFromLikelihoodMap(
     std::vector<std::pair<double, double>> &points) {
-  // std::cerr << "Run ObservationModel::getProbFromLikelihoodMap."
+  // std::cerr << "Run ObservationModel::getProbsFromLikelihoodMap."
   //           << "\n";
 
   auto cells = std::move(points);
@@ -128,7 +130,7 @@ std::vector<double> ObservationModel::getProbsFromLikelihoodMap(
     cell.second /= likelihood_field_->resolution_;
   }
 
-  // std::cerr << "Done ObservationModel::getProbFromLikelihoodMap."
+  // std::cerr << "Done ObservationModel::getProbsFromLikelihoodMap."
   //           << "\n";
 
   return likelihood_field_->smap_.getValuesFromCells<double>(cells, true);
