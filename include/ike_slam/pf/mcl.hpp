@@ -5,6 +5,7 @@
 #define IKE_SLAM__MCL_HPP_
 
 #include "ike_slam/pf/likelihoodField.hpp"
+#include "ike_slam/pf/mapping.hpp"
 #include "ike_slam/pf/motionModel.hpp"
 #include "ike_slam/pf/observationModel.hpp"
 #include "ike_slam/pf/particle.hpp"
@@ -27,11 +28,12 @@ public:
 
   void release_pointers();
 
+  std::unique_ptr<Mapping> mapping_; // マッピングオブジェクト
   std::shared_ptr<LikelihoodField> likelihood_field_; // 尤度場オブジェクト
-  std::shared_ptr<MotionModel> motion_model_; // 動作モデルオブジェクト
-  std::shared_ptr<ObservationModel>
+  std::unique_ptr<MotionModel> motion_model_; // 動作モデルオブジェクト
+  std::unique_ptr<ObservationModel>
       observation_model_;                  // 観測モデルオブジェクト
-  std::shared_ptr<Resampling> resampling_; // リサンプリングオブジェクト
+  std::unique_ptr<Resampling> resampling_; // リサンプリングオブジェクト
 
   void initParticles(double ini_pose_x, double ini_pose_y, double ini_pose_yaw,
                      int particle_size); // パーティクルの初期化をする

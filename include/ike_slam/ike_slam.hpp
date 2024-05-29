@@ -133,7 +133,7 @@ private:
   bool init_mcl_;            // MCLの初期化を実行したかのフラグ
   bool init_likelihood_map_; // 尤度場を作成したかのフラグ
 
-  std::shared_ptr<mcl::Mcl> mcl_; // ROS依存が無いMClオブジェクト
+  std::unique_ptr<mcl::Mcl> mcl_; // ROS依存が無いMClオブジェクト
 
   geometry_msgs::msg::PoseStamped current_pose_,
       past_pose_; // 現在の姿勢、現在より一個前の姿勢

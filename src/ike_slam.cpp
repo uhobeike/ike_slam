@@ -366,7 +366,7 @@ void IkeSlam::initMcl() {
   RCLCPP_INFO(get_logger(), "Run initMcl.");
 
   mcl_.reset();
-  mcl_ = std::make_shared<mcl::Mcl>(
+  mcl_ = std::make_unique<mcl::Mcl>(
       initial_pose_x_, initial_pose_y_, initial_pose_a_, alpha1_, alpha2_,
       alpha3_, alpha4_, particle_size_, likelihood_dist_, map_.info.width,
       map_.info.height, map_.info.resolution, map_.info.origin.position.x,

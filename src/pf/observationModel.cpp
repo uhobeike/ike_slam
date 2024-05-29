@@ -8,7 +8,7 @@ namespace mcl {
 ObservationModel::ObservationModel(
     std::shared_ptr<mcl::LikelihoodField> likelihood_field,
     bool publish_particles_scan_match_point)
-    : likelihood_field_(std::move(likelihood_field)), marginal_likelihood_(0.),
+    : likelihood_field_(likelihood_field), marginal_likelihood_(0.),
       publish_particles_scan_match_point_(publish_particles_scan_match_point) {
   std::cerr << "Run ObservationModel::ObservationModel."
             << "\n";
