@@ -4,19 +4,7 @@
 #ifndef IKE_SLAM__PARTICLE_HPP_
 #define IKE_SLAM__PARTICLE_HPP_
 
-struct Euler {
-  double yaw;
-};
-
-struct Point {
-  double x;
-  double y;
-};
-
-struct Pose {
-  Point position;
-  Euler euler;
-};
+#include "ike_slam/pf/pose.hpp"
 
 struct Particle {
   Pose pose;
