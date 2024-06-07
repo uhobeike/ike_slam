@@ -3,6 +3,7 @@
 
 #include "ike_slam/map/sparseOccupancyGridMap.hpp"
 
+#include <iostream>
 #include <vector>
 
 namespace mcl {
@@ -40,11 +41,36 @@ nav_msgs::msg::OccupancyGrid SparseOccupancyGridMap::toOccupancyGrid() const {
   nav_msgs::msg::OccupancyGrid grid;
   grid.info.width = width_;
   grid.info.height = height_;
+
   grid.data.resize(width_ * height_, -1);
 
-  for (const auto &cell : map_data_) {
+  for (auto &cell : map_data_) {
     int index = cell.first.y * width_ + cell.first.x;
-    grid.data[index] = cell.second.value * 100;
+    try {
+      grid.data.at(index) = cell.second.value * 100;
+    } catch (const std::out_of_range &e) {
+      continue;
+    }
+    grid.data.at(index) = cell.second.value * 100;
+  }
+  return grid;
+}
+
+nav_msgs::msg::OccupancyGrid SparseOccupancyGridMap::toOccupancyGrid2() const {
+  nav_msgs::msg::OccupancyGrid grid;
+  grid.info.width = width_;
+  grid.info.height = height_;
+
+  grid.data.resize(width_ * height_, -1);
+
+  for (auto &cell : map_data_) {
+    int index = cell.first.y * width_ + cell.first.x;
+    try {
+      grid.data.at(index);
+    } catch (const std::out_of_range &e) {
+      continue;
+    }
+    grid.data.at(index) = cell.second.value;
   }
   return grid;
 }

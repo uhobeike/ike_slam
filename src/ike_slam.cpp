@@ -103,6 +103,8 @@ void IkeSlam::initPubSub() {
   likelihood_map_pub_ = create_publisher<nav_msgs::msg::OccupancyGrid>(
       "likelihood_map",
       rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
+  mapping_map_pub_ =
+      create_publisher<nav_msgs::msg::OccupancyGrid>("mapping_map", 1);
   particles_scan_match_point_publisher_ =
       create_publisher<visualization_msgs::msg::MarkerArray>("mcl_match", 2);
   marginal_likelihood_publisher_ =
@@ -377,6 +379,9 @@ void IkeSlam::initMcl() {
   likelihood_map_pub_->publish(map_);
   mcl_->initParticles(initial_pose_x_, initial_pose_y_, initial_pose_a_,
                       particle_size_);
+  maximum_likelihood_particle_.pose.position.x = initial_pose_x_;
+  maximum_likelihood_particle_.pose.position.y = initial_pose_y_;
+  maximum_likelihood_particle_.pose.euler.yaw = initial_pose_a_;
 
   init_mcl_ = true;
   init_likelihood_map_ = true;
@@ -408,6 +413,21 @@ void IkeSlam::loopMcl() {
           RCLCPP_INFO(get_logger(), "Run IkeSlam::loopMcl");
           setScan(scan_);
           getCurrentRobotPose(current_pose_);
+
+          auto lmap = std::make_shared<mcl::LikelihoodField>(
+              likelihood_dist_, map_.info.width, map_.info.height,
+              map_.info.resolution, map_.info.origin.position.x,
+              map_.info.origin.position.y, map_.data, false);
+          mcl_->mapping_->gridMapping(
+              lmap,
+              Pose(maximum_likelihood_particle_.pose.position.x,
+                   maximum_likelihood_particle_.pose.position.y,
+                   maximum_likelihood_particle_.pose.euler.yaw),
+              mcl_->scan_);
+          auto map = lmap->smap_.toOccupancyGrid2();
+          map.header.frame_id = "map";
+          map.info.resolution = 0.05;
+          mapping_map_pub_->publish(map);
 
           mcl_->motion_model_->getDelta(
               delta_x_, delta_y_, delta_yaw_, current_pose_.pose.position.x,

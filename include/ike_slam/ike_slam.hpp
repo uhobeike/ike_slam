@@ -100,6 +100,7 @@ private:
       particle_cloud_pub_;
   rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr
       likelihood_map_pub_;
+  rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr mapping_map_pub_;
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr
       particles_scan_match_point_publisher_;
   rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr

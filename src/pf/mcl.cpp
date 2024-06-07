@@ -20,9 +20,9 @@ Mcl::Mcl(double ini_pose_x, double ini_pose_y, double ini_pose_yaw,
 
   likelihood_field_ = std::make_shared<LikelihoodField>(
       likelihood_dist, map_width, map_height, map_resolution, map_origin_x,
-      map_origin_y, map_data);
+      map_origin_y, map_data, true);
 
-  mapping_ = std::make_unique<Mapping>(likelihood_field_);
+  mapping_ = std::make_unique<Mapping>(0.05);
 
   motion_model_ =
       std::make_unique<MotionModel>(alpha_trans_trans, alpha_trans_rotate,
