@@ -63,6 +63,7 @@ protected:
       const std::vector<std::pair<double, double>> particles_scan_match_point);
   void
   transformMapToOdom(); // 推定した姿勢からマップ座標系オドメトリー座標系間の変換を行う
+  void setScan(const sensor_msgs::msg::LaserScan &scan);
   void getCurrentRobotPose(
       geometry_msgs::msg::PoseStamped
           &current_pose); // オドメトリー座標系でのロボット姿勢を取得する
@@ -99,6 +100,7 @@ private:
       particle_cloud_pub_;
   rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr
       likelihood_map_pub_;
+  rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr mapping_map_pub_;
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr
       particles_scan_match_point_publisher_;
   rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr
@@ -132,7 +134,7 @@ private:
   bool init_mcl_;            // MCLの初期化を実行したかのフラグ
   bool init_likelihood_map_; // 尤度場を作成したかのフラグ
 
-  std::shared_ptr<mcl::Mcl> mcl_; // ROS依存が無いMClオブジェクト
+  std::unique_ptr<mcl::Mcl> mcl_; // ROS依存が無いMClオブジェクト
 
   geometry_msgs::msg::PoseStamped current_pose_,
       past_pose_; // 現在の姿勢、現在より一個前の姿勢

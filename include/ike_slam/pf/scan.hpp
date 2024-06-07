@@ -5,6 +5,7 @@
 #define IKE_SLAM__SCAN_HPP_
 
 #include <iostream>
+#include <sensor_msgs/msg/laser_scan.hpp>
 #include <vector>
 
 struct Scan {
@@ -14,6 +15,16 @@ struct Scan {
   float range_min;
   float range_max;
   std::vector<float> ranges;
+
+  Scan &operator=(const sensor_msgs::msg::LaserScan &scan) {
+    angle_min = scan.angle_min;
+    angle_max = scan.angle_max;
+    angle_increment = scan.angle_increment;
+    range_min = scan.range_min;
+    range_max = scan.range_max;
+    ranges = std::move(scan.ranges);
+    return *this;
+  }
 };
 
 #endif // IKE_SLAM__SCAN_HPP_

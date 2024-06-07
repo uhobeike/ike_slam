@@ -15,21 +15,14 @@ namespace mcl {
 class ObservationModel {
 public:
   ObservationModel(std::shared_ptr<mcl::LikelihoodField> likelihood_field,
-                   float angle_min, float angle_max, float angle_increment,
-                   float range_min, float range_max,
                    bool publish_particles_scan_match_point);
   ~ObservationModel();
 
-  void initScan(float angle_min, float angle_max, float angle_increment,
-                float range_min,
-                float range_max); // スキャンに関するパラメータをセットする
-  void setScan(std::vector<float> &
-                   scan_data); // ROS 2のスキャンをMClのスキャンとしてセットする
-
   void update(std::vector<Particle> &particles,
-              std::vector<float> scan_data); // 観測モデルの更新
+              const Scan &scan_data); // 観測モデルの更新
   double
-  calculateParticleWeight(const Particle p); // パーティクルの重みを計算する
+  calculateParticleWeight(const Particle p,
+                          const Scan &scan); // パーティクルの重みを計算する
   double getProbFromLikelihoodMap(double x,
                                   double y); // 尤度場から確率を取得する
   std::vector<double>
@@ -40,7 +33,6 @@ public:
   } // ラジアンに変換する
 
   std::shared_ptr<mcl::LikelihoodField> likelihood_field_;
-  Scan scan_;
 
   float marginal_likelihood_;
   std::vector<std::pair<double, double>> particles_scan_match_point_;

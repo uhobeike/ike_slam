@@ -14,7 +14,7 @@ class LikelihoodField {
 public:
   LikelihoodField(double likelihood_dist, uint32_t width, uint32_t height,
                   double resolution, double origin_x, double origin_y,
-                  std::vector<int8_t> data);
+                  std::vector<int8_t> data, bool create);
   ~LikelihoodField();
 
   void createLikelihoodField(); // 尤度場を作成する
@@ -35,6 +35,7 @@ public:
   double origin_x_;          // 受け取ったマップの原点x
   double origin_y_;          // 受け取ったマップの原点y
   std::vector<double> data_; // 受け取ったマップの各画素の情報
+  bool create_;
   SparseOccupancyGridMap smap_;
 };
 } // namespace mcl

@@ -98,10 +98,12 @@ public:
   void fromOccupancyGrid(const int width, const int height,
                          const std::vector<double> &map_data);
   nav_msgs::msg::OccupancyGrid toOccupancyGrid() const;
+  nav_msgs::msg::OccupancyGrid toOccupancyGrid2() const;
+
+  std::unordered_map<Index, Cell, IndexHash> map_data_;
 
 private:
   void updateMapSize(int x, int y);
-  std::unordered_map<Index, Cell, IndexHash> map_data_;
   int width_;
   int height_;
 };
