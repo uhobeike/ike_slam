@@ -24,8 +24,6 @@ public:
   double normalizePdf(double max_pdf,
                       double pdf); // 足して1になるように確率を修正する
 
-  void getLikelihoodField(std::vector<int8_t> &data); // 尤度場を渡す
-
   double likelihood_dist_;   // 尤度場の距離
   uint32_t width_;           // 受け取ったマップのwidth
   uint32_t height_;          // 受け取ったマップのheight

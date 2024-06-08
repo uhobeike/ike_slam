@@ -47,25 +47,6 @@ void SparseOccupancyGridMap::fromOccupancyGrid(
 
 nav_msgs::msg::OccupancyGrid SparseOccupancyGridMap::toOccupancyGrid() const {
   nav_msgs::msg::OccupancyGrid grid;
-  grid.info.width = max_width_;
-  grid.info.height = max_height_;
-
-  grid.data.resize(max_width_ * max_height_, -1);
-
-  for (auto &cell : map_data_) {
-    int index = cell.first.y * max_width_ + cell.first.x;
-    try {
-      grid.data.at(index) = cell.second.value * 100;
-    } catch (const std::out_of_range &e) {
-      continue;
-    }
-    grid.data.at(index) = cell.second.value * 100;
-  }
-  return grid;
-}
-
-nav_msgs::msg::OccupancyGrid SparseOccupancyGridMap::toOccupancyGrid2() const {
-  nav_msgs::msg::OccupancyGrid grid;
   int grid_width = max_width_ - min_width_ + 1;
   int grid_height = max_height_ - min_height_ + 1;
 
@@ -80,7 +61,7 @@ nav_msgs::msg::OccupancyGrid SparseOccupancyGridMap::toOccupancyGrid2() const {
     int adjusted_x = cell.first.x - min_width_;
     int adjusted_y = cell.first.y - min_height_;
     int index = adjusted_y * grid_width + adjusted_x;
-    if (index >= 0 && index < grid.data.size()) {
+    if (index >= 0 && static_cast<size_t>(index) < grid.data.size()) {
       grid.data[index] = cell.second.value;
     }
   }

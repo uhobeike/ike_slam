@@ -22,14 +22,6 @@ void LikelihoodField::createLikelihoodField() {
       if (smap_.getValueFromCell<double>(x, y, true) == 100) {
         calculateLikelihood(x, y);
       }
-
-  for (auto &cell : smap_) {
-    cell.value /= 100;
-    if (cell.value < 1.0e-10)
-      cell.value = 1.0e-10;
-    if (cell.value == 0)
-      cell.value = 1.0e-10;
-  }
 }
 
 void LikelihoodField::calculateLikelihood(uint32_t map_x, uint32_t map_y) {
@@ -67,10 +59,6 @@ double LikelihoodField::calculateProb(double stochastic_variable,
 
 double LikelihoodField::normalizePdf(double max_pdf, double pdf) {
   return (pdf / max_pdf) * 100;
-}
-
-void LikelihoodField::getLikelihoodField(std::vector<int8_t> &data) {
-  data = smap_.toOccupancyGrid().data;
 }
 
 } // namespace mcl

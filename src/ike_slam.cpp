@@ -380,8 +380,8 @@ void IkeSlam::loopMcl() {
           getCurrentRobotPose(current_pose_);
 
           mcl_->mapping_->gridMapping(mcl_->particles_, mcl_->scan_);
-          auto map = mcl_->particles_[0].map->smap_.toOccupancyGrid2();
-          map.header.frame_id = "map";
+          auto map = mcl_->particles_[0].map->smap_.toOccupancyGrid();
+          map.header.frame_id = map_frame_;
           map.info.resolution = map_resolution_;
           map.info.origin.position.x =
               map.info.origin.position.x * map_resolution_;
