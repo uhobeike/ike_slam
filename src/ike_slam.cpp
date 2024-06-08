@@ -32,16 +32,13 @@ namespace ike_slam {
 
 IkeSlam::IkeSlam(const rclcpp::NodeOptions &options)
     : Node("ike_slam", options), ros_clock_(RCL_SYSTEM_TIME),
-      scan_receive_(false), map_receive_(false) {
+      scan_receive_(false) {
   RCLCPP_INFO(this->get_logger(), "Run IkeSlam");
 
   getParam();
 
   initPubSub();
   initServiceServer();
-  initServiceClient();
-
-  getMap();
 
   loopMcl();
 }
@@ -147,38 +144,6 @@ void IkeSlam::initServiceServer() {
   };
   publish_likelihoodfield_map_srv_ = create_service<std_srvs::srv::Trigger>(
       "publish_likelihoodfield_map", publish_likelihoodfield_map);
-}
-
-void IkeSlam::initServiceClient() {
-  get_map_srv_client_ =
-      this->create_client<ike_nav_msgs::srv::GetMap>("get_map");
-}
-
-void IkeSlam::getMap() {
-  RCLCPP_INFO(get_logger(), "Run getMap.");
-
-  while (!get_map_srv_client_->wait_for_service(std::chrono::seconds(1))) {
-    if (!rclcpp::ok()) {
-      RCLCPP_ERROR(this->get_logger(),
-                   "client interrupted while waiting for service to appear.");
-    }
-    RCLCPP_INFO(this->get_logger(), "waiting for service to appear...");
-  }
-
-  auto request = std::make_shared<ike_nav_msgs::srv::GetMap::Request>();
-  using ServiceResponseFuture =
-      rclcpp::Client<ike_nav_msgs::srv::GetMap>::SharedFuture;
-
-  auto response_received_callback = [this](ServiceResponseFuture future) {
-    auto result = future.get();
-    map_ = result.get()->map;
-    map_receive_ = true;
-    RCLCPP_INFO(get_logger(), "Received map.");
-  };
-  auto future_result = get_map_srv_client_->async_send_request(
-      request, response_received_callback);
-
-  RCLCPP_INFO(get_logger(), "Done getMap.");
 }
 
 void IkeSlam::receiveScan(sensor_msgs::msg::LaserScan::SharedPtr msg) {
@@ -409,15 +374,14 @@ void IkeSlam::mcl_to_ros2() {
 void IkeSlam::loopMcl() {
   mcl_loop_timer_ =
       create_wall_timer(std::chrono::milliseconds{loop_mcl_ms_}, [this]() {
-        if (rclcpp::ok() && scan_receive_ && map_receive_ && init_tf_ &&
-            init_mcl_) {
+        if (rclcpp::ok() && scan_receive_ && init_tf_ && init_mcl_) {
           RCLCPP_INFO(get_logger(), "Run IkeSlam::loopMcl");
           setScan(scan_);
           getCurrentRobotPose(current_pose_);
 
           mcl_->mapping_->gridMapping(mcl_->particles_, mcl_->scan_);
-          auto map = mcl_->particles_[0].map->smap_.toOccupancyGrid2();
-          map.header.frame_id = "map";
+          auto map = mcl_->particles_[0].map->smap_.toOccupancyGrid();
+          map.header.frame_id = map_frame_;
           map.info.resolution = map_resolution_;
           map.info.origin.position.x =
               map.info.origin.position.x * map_resolution_;
@@ -451,7 +415,7 @@ void IkeSlam::loopMcl() {
             getCurrentRobotPose(current_pose_);
             past_pose_ = current_pose_;
           }
-          if (map_receive_ && scan_receive_ && !init_mcl_)
+          if (scan_receive_ && !init_mcl_)
             initMcl();
           if (not scan_receive_)
             RCLCPP_WARN(

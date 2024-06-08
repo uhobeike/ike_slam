@@ -11,7 +11,6 @@
 
 #include <rclcpp/rclcpp.hpp>
 
-#include "ike_nav_msgs/srv/get_map.hpp"
 #include <geometry_msgs/msg/pose.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
@@ -52,7 +51,6 @@ protected:
   void initServiceClient(); // サービスクライアントの初期化
   void initTf();            // tf関連の初期化
   void initMcl();           // MClの初期化
-  void getMap();            // サービス経由でmapを取得する
   void mcl_to_ros2();       // MClからROS 2の橋渡し的なことをする
   void setParticles(
       nav2_msgs::msg::ParticleCloud
@@ -112,9 +110,6 @@ private:
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr
       publish_likelihoodfield_map_srv_;
 
-  // サービスクライアントの登録
-  rclcpp::Client<ike_nav_msgs::srv::GetMap>::SharedPtr get_map_srv_client_;
-
   rclcpp::TimerBase::SharedPtr mcl_loop_timer_; // MClのループ用のタイマー
 
   rclcpp::Clock ros_clock_; // 時間を取得する用
@@ -129,7 +124,6 @@ private:
 
   bool initialpose_receive_; // 初期位置を受け取ったかのフラグ
   bool scan_receive_;        // スキャンを受け取ったかのフラグ
-  bool map_receive_;         // マップを受け取ったかのフラグ
   bool init_tf_;             // tfの初期化を実行したかのフラグ
   bool init_mcl_;            // MCLの初期化を実行したかのフラグ
   bool init_likelihood_map_; // 尤度場を作成したかのフラグ

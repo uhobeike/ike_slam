@@ -2,75 +2,50 @@
 // SPDX-License-Identifier: GPL-3.0
 
 #include "ike_slam/pf/likelihoodField.hpp"
-
 #include <cmath>
+#include <vector>
 
 namespace mcl {
 LikelihoodField::LikelihoodField(double likelihood_dist, float resolution)
-    : likelihood_dist_(likelihood_dist), resolution_(resolution) {
-  std::cerr << "Create LikelihoodField."
-            << "\n";
-
-  std::cerr << "Done Create LikelihoodField."
-            << "\n";
+    : likelihood_dist_(likelihood_dist), resolution_(resolution),
+      likelihood_dist_sq_(likelihood_dist * likelihood_dist) {
+  std::cerr << "Create LikelihoodField.\n";
+  std::cerr << "Done Create LikelihoodField.\n";
 };
+
 LikelihoodField::~LikelihoodField(){};
 
-void LikelihoodField::createLikelihoodField() {
-  for (uint32_t y = 0; y < height_; y++)
-    for (uint32_t x = 0; x < width_; x++)
-      if (smap_.getValueFromCell<double>(x, y, true) == 100) {
-        calculateLikelihood(x, y);
-      }
+void LikelihoodField::createLikelihoodField(int map_x, int map_y) {
+  double max_prob = calculateProb(0, likelihood_dist_);
+  double sigma = likelihood_dist_ / 3;
+  double normalizer = 1.0 / std::sqrt(2.0 * M_PI * sigma * sigma);
 
-  for (auto &cell : smap_) {
-    cell.value /= 100;
-    if (cell.value < 1.0e-10)
-      cell.value = 1.0e-10;
-    if (cell.value == 0)
-      cell.value = 1.0e-10;
-  }
-}
-
-void LikelihoodField::calculateLikelihood(uint32_t map_x, uint32_t map_y) {
-  int sub_map_x_start, sub_map_y_start, sub_map_x_end, sub_map_y_end;
-  sub_map_x_start = map_x - likelihood_dist_;
-  sub_map_y_start = map_y - likelihood_dist_;
-  sub_map_x_end = map_x + likelihood_dist_;
-  sub_map_y_end = map_y + likelihood_dist_;
-
-  for (auto y = sub_map_y_start - likelihood_dist_; y < sub_map_y_end; y++) {
-    for (auto x = sub_map_x_start - likelihood_dist_; x < sub_map_x_end; x++) {
-      if (hypot(x - map_x, y - map_y) < likelihood_dist_) {
-        if (normalizePdf(
-                calculateProb(0, likelihood_dist_),
-                calculateProb(hypot(x - map_x, y - map_y), likelihood_dist_)) >
-            smap_.getValueFromCell<double>(x, y, true)) {
-          smap_.addCell(x, y,
-                        normalizePdf(calculateProb(0, likelihood_dist_),
-                                     calculateProb(hypot(x - map_x, y - map_y),
-                                                   likelihood_dist_)));
+  for (int y = map_y - likelihood_dist_; y <= map_y + likelihood_dist_; y++) {
+    for (int x = map_x - likelihood_dist_; x <= map_x + likelihood_dist_; x++) {
+      double dx = x - map_x;
+      double dy = y - map_y;
+      double dist_sq = dx * dx + dy * dy;
+      if (dist_sq < likelihood_dist_sq_) {
+        double dist = std::sqrt(dist_sq);
+        double exp_val = std::exp(-dist_sq / (2 * sigma * sigma));
+        double calculated_prob = normalizer * exp_val;
+        double normalized_prob = normalizePdf(max_prob, calculated_prob);
+        if (normalized_prob > smap_.getValueFromCell<double>(x, y, true)) {
+          smap_.addCell(x, y, normalized_prob);
         }
       }
     }
   }
 };
 
-double LikelihoodField::calculateProb(double stochastic_variable,
-                                      double likelihood_dist) {
+inline double LikelihoodField::calculateProb(double distance,
+                                             double likelihood_dist) {
   double sigma = likelihood_dist / 3;
-  double pdf = 1. / std::sqrt(2. * M_PI * sigma * sigma) *
-               std::exp(-stochastic_variable * stochastic_variable /
-                        (2 * sigma * sigma));
-  return pdf;
+  double x = -distance * distance / (2 * sigma * sigma);
+  return 1.0 / std::sqrt(2.0 * M_PI * sigma * sigma) * std::exp(x);
 }
 
-double LikelihoodField::normalizePdf(double max_pdf, double pdf) {
+inline double LikelihoodField::normalizePdf(double max_pdf, double pdf) {
   return (pdf / max_pdf) * 100;
 }
-
-void LikelihoodField::getLikelihoodField(std::vector<int8_t> &data) {
-  data = smap_.toOccupancyGrid().data;
-}
-
 } // namespace mcl
