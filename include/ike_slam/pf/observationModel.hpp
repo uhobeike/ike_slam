@@ -9,13 +9,11 @@
 #include "ike_slam/pf/scan.hpp"
 
 #include <cmath>
-#include <memory>
 
 namespace mcl {
 class ObservationModel {
 public:
-  ObservationModel(std::shared_ptr<mcl::LikelihoodField> likelihood_field,
-                   bool publish_particles_scan_match_point);
+  ObservationModel(bool publish_particles_scan_match_point);
   ~ObservationModel();
 
   void update(std::vector<Particle> &particles,
@@ -23,16 +21,15 @@ public:
   double
   calculateParticleWeight(const Particle p,
                           const Scan &scan); // パーティクルの重みを計算する
-  double getProbFromLikelihoodMap(double x,
+  double getProbFromLikelihoodMap(const Particle &p, double x,
                                   double y); // 尤度場から確率を取得する
   std::vector<double>
-  getProbsFromLikelihoodMap(std::vector<std::pair<double, double>> &points);
+  getProbsFromLikelihoodMap(const Particle &p,
+                            std::vector<std::pair<double, double>> &points);
 
   inline double getRadian(double degree) {
     return degree * M_PI / 180;
   } // ラジアンに変換する
-
-  std::shared_ptr<mcl::LikelihoodField> likelihood_field_;
 
   float marginal_likelihood_;
   std::vector<std::pair<double, double>> particles_scan_match_point_;

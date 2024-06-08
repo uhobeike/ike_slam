@@ -5,10 +5,8 @@
 #include "ike_slam/map/sparseOccupancyGridMap.hpp"
 
 namespace mcl {
-ObservationModel::ObservationModel(
-    std::shared_ptr<mcl::LikelihoodField> likelihood_field,
-    bool publish_particles_scan_match_point)
-    : likelihood_field_(likelihood_field), marginal_likelihood_(0.),
+ObservationModel::ObservationModel(bool publish_particles_scan_match_point)
+    : marginal_likelihood_(0.),
       publish_particles_scan_match_point_(publish_particles_scan_match_point) {
   std::cerr << "Run ObservationModel::ObservationModel."
             << "\n";
@@ -64,7 +62,7 @@ double ObservationModel::calculateParticleWeight(const Particle p,
     particles_scan_match_point_ = hits_xy;
   }
 
-  auto probs = getProbsFromLikelihoodMap(hits_xy);
+  auto probs = getProbsFromLikelihoodMap(p, hits_xy);
   particle_weight += std::reduce(probs.begin(), probs.end());
 
   // std::cerr << "Done ObservationModel::calculateParticleWeight."
@@ -72,36 +70,36 @@ double ObservationModel::calculateParticleWeight(const Particle p,
   return particle_weight;
 }
 
-double ObservationModel::getProbFromLikelihoodMap(double x, double y) {
+double ObservationModel::getProbFromLikelihoodMap(const Particle &p, double x,
+                                                  double y) {
   // std::cerr << "Run ObservationModel::getProbFromLikelihoodMap."
   //           << "\n";
 
-  int cell_x = x / likelihood_field_->resolution_;
-  int cell_y = y / likelihood_field_->resolution_;
+  int cell_x = x / p.map->resolution_;
+  int cell_y = y / p.map->resolution_;
 
   // std::cerr << "Done ObservationModel::getProbFromLikelihoodMap."
   //           << "\n";
 
-  return likelihood_field_->smap_.getValueFromCell<double>(cell_x, cell_y,
-                                                           true);
+  return p.map->smap_.getValueFromCell<double>(cell_x, cell_y, true);
 }
 
 std::vector<double> ObservationModel::getProbsFromLikelihoodMap(
-    std::vector<std::pair<double, double>> &points) {
+    const Particle &p, std::vector<std::pair<double, double>> &points) {
   // std::cerr << "Run ObservationModel::getProbsFromLikelihoodMap."
   //           << "\n";
 
   auto cells = std::move(points);
 
   for (auto &cell : cells) {
-    cell.first /= likelihood_field_->resolution_;
-    cell.second /= likelihood_field_->resolution_;
+    cell.first /= p.map->resolution_;
+    cell.second /= p.map->resolution_;
   }
 
   // std::cerr << "Done ObservationModel::getProbsFromLikelihoodMap."
   //           << "\n";
 
-  return likelihood_field_->smap_.getValuesFromCells<double>(cells, true);
+  return p.map->smap_.getValuesFromCells<double>(cells, true);
 }
 
 } // namespace mcl

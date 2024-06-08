@@ -7,29 +7,24 @@ namespace mcl {
 Mcl::Mcl(double ini_pose_x, double ini_pose_y, double ini_pose_yaw,
          double alpha_trans_trans, double alpha_trans_rotate,
          double alpha_rotate_trans, double alpha_rotate_rotate,
-         int particle_size, double likelihood_dist, uint32_t map_width,
-         uint32_t map_height, double map_resolution, double map_origin_x,
-         double map_origin_y, std::vector<int8_t> map_data,
+         int particle_size, double likelihood_dist, float map_resolution,
          bool publish_particles_scan_match_point) {
   std::cerr << "Run Mcl::Mcl."
             << "\n";
 
-  initParticles(ini_pose_x, ini_pose_y, ini_pose_yaw, particle_size);
+  initParticles(ini_pose_x, ini_pose_y, ini_pose_yaw, particle_size,
+                likelihood_dist, map_resolution);
 
   release_pointers();
 
-  likelihood_field_ = std::make_shared<LikelihoodField>(
-      likelihood_dist, map_width, map_height, map_resolution, map_origin_x,
-      map_origin_y, map_data, true);
-
-  mapping_ = std::make_unique<Mapping>(0.05);
+  mapping_ = std::make_unique<Mapping>(map_resolution);
 
   motion_model_ =
       std::make_unique<MotionModel>(alpha_trans_trans, alpha_trans_rotate,
                                     alpha_rotate_trans, alpha_rotate_rotate);
 
-  observation_model_ = std::make_unique<ObservationModel>(
-      likelihood_field_, publish_particles_scan_match_point);
+  observation_model_ =
+      std::make_unique<ObservationModel>(publish_particles_scan_match_point);
 
   resampling_ = std::make_unique<Resampling>(particle_size);
   std::cerr << "Done Mcl::Mcl."
@@ -39,7 +34,8 @@ Mcl::Mcl(double ini_pose_x, double ini_pose_y, double ini_pose_yaw,
 Mcl::~Mcl() { release_pointers(); }
 
 void Mcl::initParticles(double ini_pose_x, double ini_pose_y,
-                        double ini_pose_yaw, int particle_size) {
+                        double ini_pose_yaw, int particle_size,
+                        double likelihood_dist, float map_resolution) {
   std::cerr << "Run Mcl::initParticles."
             << "\n";
 
@@ -54,6 +50,8 @@ void Mcl::initParticles(double ini_pose_x, double ini_pose_y,
   for (auto i = 0; i < particle_size; i++) {
     particles_[i] = p;
     particles_[i].weight = 1. / particle_size;
+    particles_[i].map =
+        std::make_shared<LikelihoodField>(likelihood_dist, map_resolution);
   }
 
   std::cerr << "Done Mcl::initParticles."
@@ -81,7 +79,7 @@ void Mcl::getMeanParticle(Particle &particle) {
 }
 
 void Mcl::release_pointers() {
-  likelihood_field_.reset();
+  mapping_.reset();
   motion_model_.reset();
   observation_model_.reset();
   resampling_.reset();

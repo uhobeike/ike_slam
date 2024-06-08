@@ -21,22 +21,21 @@ public:
   Mcl(double ini_pose_x, double ini_pose_y, double ini_pose_yaw,
       double alpha_trans_trans, double alpha_trans_rotate,
       double alpha_rotate_trans, double alpha_rotate_rotate, int particle_size,
-      double likelihood_dist, uint32_t map_width, uint32_t map_height,
-      double map_resolution, double map_origin_x, double map_origin_y,
-      std::vector<int8_t> map_data, bool publish_particles_scan_match_point);
+      double likelihood_dist, float map_resolution,
+      bool publish_particles_scan_match_point);
   ~Mcl();
 
   void release_pointers();
 
   std::unique_ptr<Mapping> mapping_; // マッピングオブジェクト
-  std::shared_ptr<LikelihoodField> likelihood_field_; // 尤度場オブジェクト
   std::unique_ptr<MotionModel> motion_model_; // 動作モデルオブジェクト
   std::unique_ptr<ObservationModel>
       observation_model_;                  // 観測モデルオブジェクト
   std::unique_ptr<Resampling> resampling_; // リサンプリングオブジェクト
 
   void initParticles(double ini_pose_x, double ini_pose_y, double ini_pose_yaw,
-                     int particle_size); // パーティクルの初期化をする
+                     int particle_size, double likelihood_dist,
+                     float map_resolution); // パーティクルの初期化をする
   void getMeanParticle(Particle &particle); // 最尤なパーティクルを渡す
   inline float getMarginalLikelihood() {
     return observation_model_->marginal_likelihood_;

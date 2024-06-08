@@ -7,7 +7,8 @@
 #include <vector>
 
 namespace mcl {
-SparseOccupancyGridMap::SparseOccupancyGridMap() : width_(0), height_(0) {}
+SparseOccupancyGridMap::SparseOccupancyGridMap()
+    : max_width_(0), max_height_(0), min_width_(0), min_height_(0) {}
 SparseOccupancyGridMap::~SparseOccupancyGridMap() {}
 
 void SparseOccupancyGridMap::addCell(int x, int y, double value) {
@@ -17,18 +18,25 @@ void SparseOccupancyGridMap::addCell(int x, int y, double value) {
 }
 
 void SparseOccupancyGridMap::expandMap(int new_width, int new_height) {
-  width_ = std::max(width_, new_width);
-  height_ = std::max(height_, new_height);
+  max_width_ = std::max(max_width_, new_width);
+  max_height_ = std::max(max_height_, new_height);
+}
+
+void SparseOccupancyGridMap::updateMapSize(int x, int y) {
+  min_width_ = std::min(min_width_, x);
+  min_height_ = std::min(min_height_, y);
+  max_width_ = std::max(max_width_, x);
+  max_height_ = std::max(max_height_, y);
 }
 
 void SparseOccupancyGridMap::fromOccupancyGrid(
     const int width, const int height, const std::vector<double> &map_data) {
   map_data_.clear();
-  width_ = width;
-  height_ = height;
-  for (int y = 0; y < height_; ++y) {
-    for (int x = 0; x < width_; ++x) {
-      int index = y * width_ + x;
+  max_width_ = width;
+  max_height_ = height;
+  for (int y = 0; y < max_height_; ++y) {
+    for (int x = 0; x < max_width_; ++x) {
+      int index = y * max_width_ + x;
       double value = map_data[index];
       if (value != -1) {
         addCell(x, y, value);
@@ -39,13 +47,13 @@ void SparseOccupancyGridMap::fromOccupancyGrid(
 
 nav_msgs::msg::OccupancyGrid SparseOccupancyGridMap::toOccupancyGrid() const {
   nav_msgs::msg::OccupancyGrid grid;
-  grid.info.width = width_;
-  grid.info.height = height_;
+  grid.info.width = max_width_;
+  grid.info.height = max_height_;
 
-  grid.data.resize(width_ * height_, -1);
+  grid.data.resize(max_width_ * max_height_, -1);
 
   for (auto &cell : map_data_) {
-    int index = cell.first.y * width_ + cell.first.x;
+    int index = cell.first.y * max_width_ + cell.first.x;
     try {
       grid.data.at(index) = cell.second.value * 100;
     } catch (const std::out_of_range &e) {
@@ -58,25 +66,26 @@ nav_msgs::msg::OccupancyGrid SparseOccupancyGridMap::toOccupancyGrid() const {
 
 nav_msgs::msg::OccupancyGrid SparseOccupancyGridMap::toOccupancyGrid2() const {
   nav_msgs::msg::OccupancyGrid grid;
-  grid.info.width = width_;
-  grid.info.height = height_;
+  int grid_width = max_width_ - min_width_ + 1;
+  int grid_height = max_height_ - min_height_ + 1;
 
-  grid.data.resize(width_ * height_, -1);
+  grid.info.width = grid_width;
+  grid.info.height = grid_height;
+  grid.data.resize(grid_width * grid_height, -1);
+
+  grid.info.origin.position.x = min_width_;
+  grid.info.origin.position.y = min_height_;
 
   for (auto &cell : map_data_) {
-    int index = cell.first.y * width_ + cell.first.x;
-    try {
-      grid.data.at(index);
-    } catch (const std::out_of_range &e) {
-      continue;
+    int adjusted_x = cell.first.x - min_width_;
+    int adjusted_y = cell.first.y - min_height_;
+    int index = adjusted_y * grid_width + adjusted_x;
+    if (index >= 0 && index < grid.data.size()) {
+      grid.data[index] = cell.second.value;
     }
-    grid.data.at(index) = cell.second.value;
   }
+
   return grid;
 }
 
-void SparseOccupancyGridMap::updateMapSize(int x, int y) {
-  width_ = std::max(width_, x + 1);
-  height_ = std::max(height_, y + 1);
-}
 } // namespace mcl

@@ -58,7 +58,7 @@ void IkeSlam::getParam() {
   transform_tolerance_ =
       this->get_parameter("transform_tolerance").get_value<double>();
 
-  this->declare_parameter("particle_size", 500);
+  this->declare_parameter("particle_size", 10);
   particle_size_ = this->get_parameter("particle_size").get_value<int>();
 
   this->declare_parameter("initial_pose_x", 0.0);
@@ -86,6 +86,9 @@ void IkeSlam::getParam() {
 
   this->declare_parameter("likelihood_dist", 10.0);
   likelihood_dist_ = this->get_parameter("likelihood_dist").get_value<double>();
+
+  this->declare_parameter("map_resolution", 0.05);
+  map_resolution_ = this->get_parameter("map_resolution").get_value<float>();
 
   this->declare_parameter("publish_particles_scan_match_point", false);
   publish_particles_scan_match_point_ =
@@ -188,7 +191,8 @@ void IkeSlam::receiveInitialPose(
   RCLCPP_INFO(get_logger(), "Run receiveInitialPose");
 
   mcl_->initParticles(msg->pose.pose.position.x, msg->pose.pose.position.y,
-                      tf2::getYaw(msg->pose.pose.orientation), particle_size_);
+                      tf2::getYaw(msg->pose.pose.orientation), particle_size_,
+                      likelihood_dist_, map_resolution_);
 
   RCLCPP_INFO(get_logger(), "Done receiveInitialPose.");
 };
@@ -370,15 +374,12 @@ void IkeSlam::initMcl() {
   mcl_.reset();
   mcl_ = std::make_unique<mcl::Mcl>(
       initial_pose_x_, initial_pose_y_, initial_pose_a_, alpha1_, alpha2_,
-      alpha3_, alpha4_, particle_size_, likelihood_dist_, map_.info.width,
-      map_.info.height, map_.info.resolution, map_.info.origin.position.x,
-      map_.info.origin.position.y, map_.data,
+      alpha3_, alpha4_, particle_size_, likelihood_dist_, map_resolution_,
       publish_particles_scan_match_point_);
 
-  mcl_->observation_model_->likelihood_field_->getLikelihoodField(map_.data);
   likelihood_map_pub_->publish(map_);
   mcl_->initParticles(initial_pose_x_, initial_pose_y_, initial_pose_a_,
-                      particle_size_);
+                      particle_size_, likelihood_dist_, map_resolution_);
   maximum_likelihood_particle_.pose.position.x = initial_pose_x_;
   maximum_likelihood_particle_.pose.position.y = initial_pose_y_;
   maximum_likelihood_particle_.pose.euler.yaw = initial_pose_a_;
@@ -414,19 +415,14 @@ void IkeSlam::loopMcl() {
           setScan(scan_);
           getCurrentRobotPose(current_pose_);
 
-          auto lmap = std::make_shared<mcl::LikelihoodField>(
-              likelihood_dist_, map_.info.width, map_.info.height,
-              map_.info.resolution, map_.info.origin.position.x,
-              map_.info.origin.position.y, map_.data, false);
-          mcl_->mapping_->gridMapping(
-              lmap,
-              Pose(maximum_likelihood_particle_.pose.position.x,
-                   maximum_likelihood_particle_.pose.position.y,
-                   maximum_likelihood_particle_.pose.euler.yaw),
-              mcl_->scan_);
-          auto map = lmap->smap_.toOccupancyGrid2();
+          mcl_->mapping_->gridMapping(mcl_->particles_, mcl_->scan_);
+          auto map = mcl_->particles_[0].map->smap_.toOccupancyGrid2();
           map.header.frame_id = "map";
-          map.info.resolution = 0.05;
+          map.info.resolution = map_resolution_;
+          map.info.origin.position.x =
+              map.info.origin.position.x * map_resolution_;
+          map.info.origin.position.y =
+              map.info.origin.position.y * map_resolution_;
           mapping_map_pub_->publish(map);
 
           mcl_->motion_model_->getDelta(
@@ -461,10 +457,6 @@ void IkeSlam::loopMcl() {
             RCLCPP_WARN(
                 get_logger(),
                 "Not yet received scan. Therefore, MCL cannot be initiated.");
-          if (not map_receive_)
-            RCLCPP_WARN(
-                get_logger(),
-                "Not yet received map. Therefore, MCL cannot be initiated.");
         }
       });
 }

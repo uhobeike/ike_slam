@@ -10,10 +10,12 @@ namespace mcl {
 Mapping::Mapping(double resolution) : resolution_(resolution){};
 Mapping::~Mapping(){};
 
-void Mapping::gridMapping(std::shared_ptr<LikelihoodField> likelihood_field,
-                          const Pose pose, const Scan &scan) {
-  auto [scan_hit_cells, scan_pass_cells] = getUpdateCells(pose, scan);
-  upadateCells(likelihood_field, scan_hit_cells, scan_pass_cells);
+void Mapping::gridMapping(std::vector<Particle> &particles, const Scan &scan) {
+  for (auto &particle : particles) {
+    auto [scan_hit_cells, scan_pass_cells] =
+        getUpdateCells(particle.pose, scan);
+    upadateCells(particle.map, scan_hit_cells, scan_pass_cells);
+  }
 }
 
 std::tuple<std::vector<std::pair<double, double>>,
@@ -44,8 +46,6 @@ Mapping::calcScanHitCells(const Pose pose, const Scan &scan) {
   hits_xy.reserve(scan.ranges.size());
 
   double scan_angle_increment = scan.angle_min;
-
-  std::cerr << "pose: " << pose.position.x << ", " << pose.position.y << "\n";
 
   for (auto scan_range : scan.ranges) {
     scan_angle_increment += scan.angle_increment;

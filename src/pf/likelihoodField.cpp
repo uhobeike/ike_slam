@@ -6,17 +6,10 @@
 #include <cmath>
 
 namespace mcl {
-LikelihoodField::LikelihoodField(double likelihood_dist, uint32_t width,
-                                 uint32_t height, double resolution,
-                                 double origin_x, double origin_y,
-                                 std::vector<int8_t> data, bool create)
-    : likelihood_dist_(likelihood_dist), width_(width), height_(height),
-      resolution_(resolution), origin_x_(origin_x), origin_y_(origin_y),
-      data_(data.begin(), data.end()), create_(create) {
+LikelihoodField::LikelihoodField(double likelihood_dist, float resolution)
+    : likelihood_dist_(likelihood_dist), resolution_(resolution) {
   std::cerr << "Create LikelihoodField."
             << "\n";
-
-  createLikelihoodField();
 
   std::cerr << "Done Create LikelihoodField."
             << "\n";
@@ -24,9 +17,6 @@ LikelihoodField::LikelihoodField(double likelihood_dist, uint32_t width,
 LikelihoodField::~LikelihoodField(){};
 
 void LikelihoodField::createLikelihoodField() {
-  if (create_)
-    smap_.fromOccupancyGrid(width_, height_, data_);
-
   for (uint32_t y = 0; y < height_; y++)
     for (uint32_t x = 0; x < width_; x++)
       if (smap_.getValueFromCell<double>(x, y, true) == 100) {
