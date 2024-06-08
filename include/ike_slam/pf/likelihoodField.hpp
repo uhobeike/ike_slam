@@ -12,9 +12,7 @@
 namespace mcl {
 class LikelihoodField {
 public:
-  LikelihoodField(double likelihood_dist, uint32_t width, uint32_t height,
-                  double resolution, double origin_x, double origin_y,
-                  std::vector<int8_t> data, bool create);
+  LikelihoodField(double likelihood_dist, float resolution);
   ~LikelihoodField();
 
   void createLikelihoodField(); // 尤度場を作成する

@@ -154,6 +154,7 @@ private:
   double likelihood_dist_;                   // 尤度場の距離
   bool
       publish_particles_scan_match_point_; // 各パーティクルのスキャンと尤度場のマッチポイントをパブリッシュするか
+  float map_resolution_;                   // 作成する地図の解像度
 };
 } // namespace ike_slam
 

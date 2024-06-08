@@ -104,8 +104,10 @@ public:
 
 private:
   void updateMapSize(int x, int y);
-  int width_;
-  int height_;
+  int max_width_;
+  int max_height_;
+  int min_width_;
+  int min_height_;
 };
 template <typename T>
 inline T

@@ -5,6 +5,7 @@
 #define IKE_SLAM__MAPPING_HPP_
 
 #include "ike_slam/pf/likelihoodField.hpp"
+#include "ike_slam/pf/particle.hpp"
 #include "ike_slam/pf/pose.hpp"
 #include "ike_slam/pf/scan.hpp"
 
@@ -16,8 +17,7 @@ public:
   Mapping(double resolution);
   ~Mapping();
 
-  void gridMapping(std::shared_ptr<LikelihoodField> likelihood_field,
-                   const Pose pose, const Scan &scan);
+  void gridMapping(std::vector<Particle> &particles, const Scan &scan);
   std::tuple<std::vector<std::pair<double, double>>,
              std::vector<std::pair<double, double>>>
   getUpdateCells(const Pose pose, const Scan &scan);
