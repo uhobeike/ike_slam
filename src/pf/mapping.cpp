@@ -31,12 +31,14 @@ void Mapping::upadateCells(
     std::vector<std::pair<double, double>> &scan_pass_cells) {
   for (auto &scan_pass_cell : scan_pass_cells) {
     likelihood_field->smap_.addCell(scan_pass_cell.first, scan_pass_cell.second,
-                                    0);
+                                    0.01);
   }
 
   for (auto &scan_hit_cell : scan_hit_cells) {
     likelihood_field->smap_.addCell(scan_hit_cell.first, scan_hit_cell.second,
-                                    100);
+                                    1.0);
+    likelihood_field->createLikelihoodField(scan_hit_cell.first,
+                                            scan_hit_cell.second);
   }
 }
 
