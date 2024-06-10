@@ -1,8 +1,6 @@
 #ifndef IKE_SLAM__SPARSEOCCUPANCYGRIDMAP_HPP_
 #define IKE_SLAM__SPARSEOCCUPANCYGRIDMAP_HPP_
 
-#define _ENABLE_ATOMIC_ALIGNMENT_FIX
-
 #include <execution>
 #include <iterator>
 #include <mutex>
