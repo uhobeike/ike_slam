@@ -10,6 +10,10 @@
 #include <vector>
 
 namespace mcl {
+
+typedef Eigen::Vector2d Point;
+typedef std::vector<Eigen::Vector2d> PointCloud;
+
 class LikelihoodField {
 public:
   LikelihoodField(double likelihood_dist, float resolution);
@@ -32,7 +36,9 @@ public:
   double origin_y_;           // 受け取ったマップの原点y
   std::vector<double> data_;  // 受け取ったマップの各画素の情報
   bool create_;
-  SparseOccupancyGridMap smap_;
+  map::SparseOccupancyGridMap smap_;
+  PointCloud scan_hit_cells_;
+  PointCloud scan_pass_cells_;
 };
 } // namespace mcl
 

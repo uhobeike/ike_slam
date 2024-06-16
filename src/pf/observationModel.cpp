@@ -3,6 +3,7 @@
 
 #include "ike_slam/pf/observationModel.hpp"
 #include "ike_slam/map/sparseOccupancyGridMap.hpp"
+#include <execution>
 
 namespace mcl {
 ObservationModel::ObservationModel(bool publish_particles_scan_match_point)

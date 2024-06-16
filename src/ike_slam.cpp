@@ -400,6 +400,20 @@ void IkeSlam::loopMcl() {
               mcl_->particles_, tf2::getYaw(current_pose_.pose.orientation),
               delta_x_, delta_y_, delta_yaw_);
 
+          for (auto &p : mcl_->particles_) {
+            auto [R, t] = mcl_->scan_matching_->icp(p.map->scan_hit_cells_,
+                                                    p.map->smap_.toPointCloud(),
+                                                    100, 1.0e-10);
+            Eigen::Vector2d pos(p.pose.position.x, p.pose.position.y);
+            Eigen::Vector2d updated_pos = R * pos + t;
+
+            double theta = std::atan2(R(1, 0), R(0, 0));
+            p.pose.euler.yaw += theta;
+
+            p.pose.position.x = updated_pos(0);
+            p.pose.position.y = updated_pos(1);
+          }
+
           mcl_->observation_model_->update(mcl_->particles_, mcl_->scan_);
 
           mcl_->resampling_->resampling(mcl_->particles_);

@@ -12,6 +12,10 @@
 #include <memory>
 
 namespace mcl {
+
+typedef Eigen::Vector2d Point;
+typedef std::vector<Eigen::Vector2d> PointCloud;
+
 class Mapping {
 public:
   Mapping(double resolution);

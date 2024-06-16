@@ -36,16 +36,30 @@ void Mapping::upadateCells(
 
   for (auto &scan_hit_cell : scan_hit_cells) {
     likelihood_field->smap_.addCell(scan_hit_cell.first, scan_hit_cell.second,
-                                    1.0);
-    likelihood_field->createLikelihoodField(scan_hit_cell.first,
-                                            scan_hit_cell.second);
+                                    100.0);
+    // likelihood_field->createLikelihoodField(scan_hit_cell.first,
+    //                                         scan_hit_cell.second);
   }
+
+  PointCloud pointcloud_pass;
+  for (const auto &p : scan_pass_cells) {
+    Eigen::Vector2d vec(p.first, p.second);
+    pointcloud_pass.push_back(vec);
+  }
+
+  PointCloud pointcloud_hit;
+  for (const auto &p : scan_hit_cells) {
+    Eigen::Vector2d vec(p.first, p.second);
+    pointcloud_hit.push_back(vec);
+  }
+
+  likelihood_field->scan_pass_cells_ = std::move(pointcloud_pass);
+  likelihood_field->scan_hit_cells_ = std::move(pointcloud_hit);
 }
 
 std::vector<std::pair<double, double>>
 Mapping::calcScanHitCells(const Pose pose, const Scan &scan) {
-  std::vector<std::pair<double, double>> hits_xy;
-  hits_xy.reserve(scan.ranges.size());
+  std::vector<std::pair<double, double>> hits_xy(scan.ranges.size());
 
   double scan_angle_increment = scan.angle_min;
 

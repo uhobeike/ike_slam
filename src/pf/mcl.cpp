@@ -19,6 +19,8 @@ Mcl::Mcl(double ini_pose_x, double ini_pose_y, double ini_pose_yaw,
 
   mapping_ = std::make_unique<Mapping>(map_resolution);
 
+  scan_matching_ = std::make_unique<scan_matching::ScanMatching>();
+
   motion_model_ =
       std::make_unique<MotionModel>(alpha_trans_trans, alpha_trans_rotate,
                                     alpha_rotate_trans, alpha_rotate_rotate);
