@@ -4,8 +4,8 @@
 #ifndef IKE_SLAM__MCL_HPP_
 #define IKE_SLAM__MCL_HPP_
 
+#include "ike_slam/mapping/mapping.hpp"
 #include "ike_slam/pf/likelihoodField.hpp"
-#include "ike_slam/pf/mapping.hpp"
 #include "ike_slam/pf/motionModel.hpp"
 #include "ike_slam/pf/observationModel.hpp"
 #include "ike_slam/pf/particle.hpp"
@@ -28,7 +28,7 @@ public:
 
   void release_pointers();
 
-  std::unique_ptr<Mapping> mapping_; // マッピングオブジェクト
+  std::unique_ptr<mapping::Mapping> mapping_; // マッピングオブジェクト
   std::unique_ptr<scan_matching::ScanMatching>
       scan_matching_; // スキャンマッチングオブジェクト
   std::unique_ptr<MotionModel> motion_model_; // 動作モデルオブジェクト

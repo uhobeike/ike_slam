@@ -149,6 +149,8 @@ private:
   bool
       publish_particles_scan_match_point_; // 各パーティクルのスキャンと尤度場のマッチポイントをパブリッシュするか
   float map_resolution_;                   // 作成する地図の解像度
+  float icp_error_tolerance_;              // icp誤差許容値
+  float icp_max_iterator_;                 // icp最大反復回数
 };
 } // namespace ike_slam
 

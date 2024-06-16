@@ -17,7 +17,7 @@ Mcl::Mcl(double ini_pose_x, double ini_pose_y, double ini_pose_yaw,
 
   release_pointers();
 
-  mapping_ = std::make_unique<Mapping>(map_resolution);
+  mapping_ = std::make_unique<mapping::Mapping>(map_resolution);
 
   scan_matching_ = std::make_unique<scan_matching::ScanMatching>();
 

@@ -14,13 +14,14 @@ ament_auto_find_build_dependencies()
 
 ament_auto_add_library(${PROJECT_NAME} SHARED
   src/map/sparseOccupancyGridMap.cpp
+  src/mapping/mapping.cpp
   src/pf/likelihoodField.cpp
-  src/pf/mapping.cpp
   src/pf/mcl.cpp
   src/pf/motionModel.cpp
   src/pf/observationModel.cpp
   src/pf/resampling.cpp
   src/scan_matching/scan_matching.cpp
+
   src/ike_slam.cpp
 )
 
