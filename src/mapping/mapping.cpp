@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: 2023 Tatsuhiro Ikebe <beike315@icloud.com>
 // SPDX-License-Identifier: GPL-3.0
 
-#include "ike_slam/pf/mapping.hpp"
+#include "ike_slam/mapping/mapping.hpp"
 
 #include <cmath>
 #include <limits>
 
-namespace mcl {
+namespace mapping {
 Mapping::Mapping(double resolution) : resolution_(resolution){};
 Mapping::~Mapping(){};
 
@@ -26,7 +26,7 @@ Mapping::getUpdateCells(const Pose pose, const Scan &scan) {
 }
 
 void Mapping::upadateCells(
-    std::shared_ptr<LikelihoodField> likelihood_field,
+    std::shared_ptr<mcl::LikelihoodField> likelihood_field,
     std::vector<std::pair<double, double>> &scan_hit_cells,
     std::vector<std::pair<double, double>> &scan_pass_cells) {
   for (auto &scan_pass_cell : scan_pass_cells) {
@@ -131,4 +131,4 @@ std::vector<std::pair<double, double>> Mapping::bresenham(int x0, int y0,
   return line_grid_cells;
 }
 
-} // namespace mcl
+} // namespace mapping

@@ -11,7 +11,7 @@
 
 #include <memory>
 
-namespace mcl {
+namespace mapping {
 
 typedef Eigen::Vector2d Point;
 typedef std::vector<Eigen::Vector2d> PointCloud;
@@ -25,7 +25,7 @@ public:
   std::tuple<std::vector<std::pair<double, double>>,
              std::vector<std::pair<double, double>>>
   getUpdateCells(const Pose pose, const Scan &scan);
-  void upadateCells(std::shared_ptr<LikelihoodField> likelihood_field,
+  void upadateCells(std::shared_ptr<mcl::LikelihoodField> likelihood_field,
                     std::vector<std::pair<double, double>> &scan_hit_cells,
                     std::vector<std::pair<double, double>> &scan_pass_cells);
   std::vector<std::pair<double, double>> calcScanHitCells(const Pose pose,
@@ -39,6 +39,6 @@ public:
 
   double resolution_;
 };
-} // namespace mcl
+} // namespace mapping
 
 #endif
