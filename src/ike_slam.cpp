@@ -87,6 +87,13 @@ void IkeSlam::getParam() {
   this->declare_parameter("map_resolution", 0.05);
   map_resolution_ = this->get_parameter("map_resolution").get_value<float>();
 
+  this->declare_parameter("icp_error_tolerance", 1.0e-2);
+  icp_error_tolerance_ =
+      this->get_parameter("icp_error_tolerance").get_value<double>();
+
+  this->declare_parameter("icp_max_iterator", 100);
+  icp_max_iterator_ = this->get_parameter("icp_max_iterator").get_value<int>();
+
   this->declare_parameter("publish_particles_scan_match_point", false);
   publish_particles_scan_match_point_ =
       this->get_parameter("publish_particles_scan_match_point")
@@ -401,9 +408,9 @@ void IkeSlam::loopMcl() {
               delta_x_, delta_y_, delta_yaw_);
 
           for (auto &p : mcl_->particles_) {
-            auto [R, t] = mcl_->scan_matching_->icp(p.map->scan_hit_cells_,
-                                                    p.map->smap_.toPointCloud(),
-                                                    100, 1.0e-10);
+            auto [R, t] = mcl_->scan_matching_->icp(
+                p.map->scan_hit_cells_, p.map->smap_.toPointCloud(),
+                icp_max_iterator_, icp_error_tolerance_);
             Eigen::Vector2d pos(p.pose.position.x, p.pose.position.y);
             Eigen::Vector2d updated_pos = R * pos + t;
 
