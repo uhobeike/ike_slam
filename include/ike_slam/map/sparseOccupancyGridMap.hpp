@@ -1,16 +1,16 @@
 #ifndef IKE_SLAM__SPARSEOCCUPANCYGRIDMAP_HPP_
 #define IKE_SLAM__SPARSEOCCUPANCYGRIDMAP_HPP_
 
-#define _ENABLE_ATOMIC_ALIGNMENT_FIX
-
-#include <execution>
+#include <Eigen/Dense>
 #include <iterator>
-#include <mutex>
 #include <nav_msgs/msg/occupancy_grid.hpp>
 #include <unordered_map>
 #include <vector>
 
-namespace mcl {
+namespace map {
+
+typedef Eigen::Vector2d Point;
+typedef std::vector<Eigen::Vector2d> PointCloud;
 
 struct Index {
   int x;
@@ -98,8 +98,10 @@ public:
   void fromOccupancyGrid(const int width, const int height,
                          const std::vector<double> &map_data);
   nav_msgs::msg::OccupancyGrid toOccupancyGrid() const;
+  PointCloud toPointCloud() const;
 
   std::unordered_map<Index, Cell, IndexHash> map_data_;
+  std::unordered_map<Index, Cell, IndexHash> map_data_only_occupied_cells_;
 
 private:
   void updateMapSize(int x, int y);
@@ -141,6 +143,6 @@ inline std::vector<T> SparseOccupancyGridMap::getValuesFromCells(
   return values;
 }
 
-} // namespace mcl
+} // namespace map
 
 #endif // IKE_SLAM__SPARSEOCCUPANCYGRIDMAP_HPP_

@@ -6,6 +6,9 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 
 find_package(ament_cmake_auto REQUIRED)
+find_package(Eigen3 REQUIRED)
+
+include_directories(${EIGEN3_INCLUDE_DIR})
 
 ament_auto_find_build_dependencies()
 
@@ -17,6 +20,7 @@ ament_auto_add_library(${PROJECT_NAME} SHARED
   src/pf/motionModel.cpp
   src/pf/observationModel.cpp
   src/pf/resampling.cpp
+  src/scan_matching/scan_matching.cpp
   src/ike_slam.cpp
 )
 

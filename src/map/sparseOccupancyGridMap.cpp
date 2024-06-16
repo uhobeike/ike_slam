@@ -6,15 +6,19 @@
 #include <iostream>
 #include <vector>
 
-namespace mcl {
+namespace map {
 SparseOccupancyGridMap::SparseOccupancyGridMap()
     : max_width_(0), max_height_(0), min_width_(0), min_height_(0) {}
 SparseOccupancyGridMap::~SparseOccupancyGridMap() {}
 
 void SparseOccupancyGridMap::addCell(int x, int y, double value) {
   Index idx{x, y};
-  map_data_[idx] = Cell(x, y, value);
+  Cell cell(x, y, value);
+  map_data_[idx] = cell;
   updateMapSize(x, y);
+  if (value == 100.0) {
+    map_data_only_occupied_cells_[idx] = cell;
+  }
 }
 
 void SparseOccupancyGridMap::expandMap(int new_width, int new_height) {
@@ -69,4 +73,15 @@ nav_msgs::msg::OccupancyGrid SparseOccupancyGridMap::toOccupancyGrid() const {
   return grid;
 }
 
-} // namespace mcl
+PointCloud SparseOccupancyGridMap::toPointCloud() const {
+  PointCloud pointcloud_from_map(map_data_only_occupied_cells_.size());
+
+  for (const auto &cell : map_data_only_occupied_cells_) {
+    Point point(cell.first.x, cell.first.y);
+    pointcloud_from_map.emplace_back(point);
+  }
+
+  return pointcloud_from_map;
+}
+
+} // namespace map

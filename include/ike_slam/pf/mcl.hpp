@@ -11,6 +11,7 @@
 #include "ike_slam/pf/particle.hpp"
 #include "ike_slam/pf/resampling.hpp"
 #include "ike_slam/pf/scan.hpp"
+#include "ike_slam/scan_matching/scan_matching.hpp"
 
 #include <memory>
 #include <vector>
@@ -28,6 +29,8 @@ public:
   void release_pointers();
 
   std::unique_ptr<Mapping> mapping_; // マッピングオブジェクト
+  std::unique_ptr<scan_matching::ScanMatching>
+      scan_matching_; // スキャンマッチングオブジェクト
   std::unique_ptr<MotionModel> motion_model_; // 動作モデルオブジェクト
   std::unique_ptr<ObservationModel>
       observation_model_;                  // 観測モデルオブジェクト
